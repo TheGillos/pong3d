@@ -1,0 +1,46 @@
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #05070f;
+}
+
+canvas {
+  display: block;
+}
+
+#hud {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: #f4f8ff;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  user-select: none;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+#hud span {
+  font-size: 2rem;
+}
+
+#hud .separator {
+  margin: 0 0.4rem;
+}
+
+#hud .controls {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
