@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phong Pong</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="splash" class="screen">
+      <h1>PHONG PONG</h1>
+      <button id="playLandscape" class="btn btn-green">Play in Landscape</button>
+      <button id="playPortrait" class="btn">Play in Portrait</button>
+    </div>
+
+    <div id="gameUI" class="hidden">
+      <div id="hud">
+        <span id="leftScore" class="p1-score">00</span>
+        <span class="separator">:</span>
+        <span id="rightScore" class="p2-score">00</span>
+      </div>
+
+      <div id="touchControls" class="hidden">
+        <div class="touch-row top-row">
+          <div class="touch-box p1-box"><button id="p1Left" class="touch-btn">&lt;&lt;&lt;&lt;</button></div>
+          <div class="touch-box p1-box"><button id="p1Right" class="touch-btn">&gt;&gt;&gt;&gt;</button></div>
+        </div>
+        <div class="touch-row bottom-row">
+          <div class="touch-box p2-box"><button id="p2Left" class="touch-btn">&lt;&lt;&lt;&lt;</button></div>
+          <div class="touch-box p2-box"><button id="p2Right" class="touch-btn">&gt;&gt;&gt;&gt;</button></div>
+        </div>
+      </div>
+
+      <p id="controlHint" class="control-hint">W/S = Left Paddle · ↑/↓ = Right Paddle</p>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
