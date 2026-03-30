@@ -117,8 +117,10 @@ let gameMode = null;
 let running = false;
 
 function setScores() {
-  leftScoreEl.textContent = String(leftScore);
-  rightScoreEl.textContent = String(rightScore);
+  const leftText = String(leftScore).padStart(2, '0');
+  const rightText = String(rightScore).padStart(2, '0');
+  leftScoreEl.textContent = leftText;
+  rightScoreEl.textContent = rightText;
 }
 
 function setViewportForMode() {
@@ -161,7 +163,7 @@ function setTableLayout(mode) {
     leftPaddle.position.set(0, 0.4, -tableDepth / 2 + 0.7);
     rightPaddle.position.set(0, 0.4, tableDepth / 2 - 0.7);
     camera.position.set(0, 10, 11);
-    controlHint.textContent = 'Top: ◀ ▶   Bottom: ◀ ▶';
+    controlHint.textContent = 'Tap/click arrows: top player (blue), bottom player (red)';
     hud.classList.add('portrait');
     touchControls.classList.remove('hidden');
   } else {
@@ -328,6 +330,12 @@ function bindTouchControl(buttonId, keyName) {
   btn.addEventListener('pointerup', up);
   btn.addEventListener('pointercancel', up);
   btn.addEventListener('pointerleave', up);
+  btn.addEventListener('mousedown', down);
+  btn.addEventListener('mouseup', up);
+  btn.addEventListener('mouseleave', up);
+  btn.addEventListener('touchstart', down, { passive: false });
+  btn.addEventListener('touchend', up, { passive: false });
+  btn.addEventListener('touchcancel', up, { passive: false });
 }
 
 bindTouchControl('p1Left', 'p1Left');

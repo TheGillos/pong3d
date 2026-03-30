@@ -80,7 +80,30 @@ canvas {
 
 #hud.portrait {
   top: 50%;
-  transform: translate(-50%, -50%);
+  left: 0;
+  width: 100%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+#hud.portrait .separator {
+  display: none;
+}
+
+#hud.portrait .p1-score,
+#hud.portrait .p2-score {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(2.7rem, 11vw, 5.2rem);
+}
+
+#hud.portrait .p1-score {
+  left: 14px;
+}
+
+#hud.portrait .p2-score {
+  right: 14px;
 }
 
 #hud span {
@@ -129,12 +152,23 @@ canvas {
 }
 
 .touch-btn {
-  width: 68px;
-  height: 52px;
+  width: min(44vw, 190px);
+  height: 58px;
   border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.45);
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.55);
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 2rem;
+  letter-spacing: 0.35rem;
   font-weight: 700;
+}
+
+.top-row .touch-btn {
+  border: 4px solid #4663a2;
+  color: #4663a2;
+}
+
+.bottom-row .touch-btn {
+  border: 4px solid #b9363a;
+  color: #b9363a;
 }
