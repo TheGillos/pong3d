@@ -165,7 +165,8 @@ function setTableLayout(mode) {
     leftPaddle.rotation.y = Math.PI / 2;
     rightPaddle.rotation.y = Math.PI / 2;
     camera.position.set(0, 10, 11);
-    controlHint.textContent = 'Tap/click arrows: top player (blue), bottom player (red)';
+    controlHint.textContent = '';
+    controlHint.classList.add('hidden');
     hud.classList.add('portrait');
     touchControls.classList.remove('hidden');
   } else {
@@ -175,6 +176,7 @@ function setTableLayout(mode) {
     rightPaddle.rotation.y = 0;
     camera.position.set(0, 8, 12);
     controlHint.textContent = 'W/S = Left Paddle · ↑/↓ = Right Paddle';
+    controlHint.classList.remove('hidden');
     hud.classList.remove('portrait');
     touchControls.classList.add('hidden');
   }

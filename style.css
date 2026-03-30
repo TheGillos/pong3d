@@ -124,7 +124,7 @@ canvas {
   bottom: 10px;
   transform: translateX(-50%);
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 1.6rem;
   font-weight: 600;
   opacity: 0.85;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
