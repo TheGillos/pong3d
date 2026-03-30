@@ -162,8 +162,8 @@ function setTableLayout(mode) {
   if (portrait) {
     leftPaddle.position.set(0, 0.4, -tableDepth / 2 + 0.7);
     rightPaddle.position.set(0, 0.4, tableDepth / 2 - 0.7);
-    leftPaddle.rotation.y = Math.PI / 4;
-    rightPaddle.rotation.y = -Math.PI / 4;
+    leftPaddle.rotation.y = Math.PI / 2;
+    rightPaddle.rotation.y = Math.PI / 2;
     camera.position.set(0, 10, 11);
     controlHint.textContent = 'Tap/click arrows: top player (blue), bottom player (red)';
     hud.classList.add('portrait');
