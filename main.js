@@ -1,8 +1,16 @@
 import * as THREE from 'three';
 
+const splash = document.getElementById('splash');
+const gameUI = document.getElementById('gameUI');
+const playLandscapeBtn = document.getElementById('playLandscape');
+const playPortraitBtn = document.getElementById('playPortrait');
+const touchControls = document.getElementById('touchControls');
+const controlHint = document.getElementById('controlHint');
+const hud = document.getElementById('hud');
+const leftScoreEl = document.getElementById('leftScore');
+const rightScoreEl = document.getElementById('rightScore');
+
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
@@ -10,7 +18,7 @@ document.body.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x04060d);
 
-const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+const camera = new THREE.PerspectiveCamera(55, 16 / 9, 0.1, 100);
 camera.position.set(0, 8, 12);
 camera.lookAt(0, 0, 0);
 
@@ -29,30 +37,27 @@ directional.shadow.camera.top = 8;
 directional.shadow.camera.bottom = -8;
 scene.add(directional);
 
-const tableWidth = 12;
-const tableDepth = 7;
+let tableWidth = 12;
+let tableDepth = 7;
 
-const table = new THREE.Mesh(
-  new THREE.BoxGeometry(tableWidth, 0.6, tableDepth),
-  new THREE.MeshPhongMaterial({
-    color: 0x16335a,
-    specular: 0x2f4f75,
-    shininess: 45
-  })
-);
+const tableMaterial = new THREE.MeshPhongMaterial({
+  color: 0x16335a,
+  specular: 0x2f4f75,
+  shininess: 45
+});
+const centerLineMaterial = new THREE.MeshPhongMaterial({
+  color: 0x8fbaff,
+  emissive: 0x07132b,
+  specular: 0x9cc8ff,
+  shininess: 120
+});
+
+const table = new THREE.Mesh(new THREE.BoxGeometry(tableWidth, 0.6, tableDepth), tableMaterial);
 table.position.y = -0.6;
 table.receiveShadow = true;
 scene.add(table);
 
-const centerLine = new THREE.Mesh(
-  new THREE.BoxGeometry(0.2, 0.05, tableDepth),
-  new THREE.MeshPhongMaterial({
-    color: 0x8fbaff,
-    emissive: 0x07132b,
-    specular: 0x9cc8ff,
-    shininess: 120
-  })
-);
+const centerLine = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.05, tableDepth), centerLineMaterial);
 centerLine.position.y = 0.01;
 centerLine.receiveShadow = true;
 scene.add(centerLine);
@@ -65,13 +70,11 @@ const paddleMaterial = new THREE.MeshPhongMaterial({
 });
 
 const leftPaddle = new THREE.Mesh(paddleGeometry, paddleMaterial);
-leftPaddle.position.set(-tableWidth / 2 + 0.7, 0.4, 0);
 leftPaddle.castShadow = true;
 leftPaddle.receiveShadow = true;
 scene.add(leftPaddle);
 
 const rightPaddle = new THREE.Mesh(paddleGeometry, paddleMaterial);
-rightPaddle.position.set(tableWidth / 2 - 0.7, 0.4, 0);
 rightPaddle.castShadow = true;
 rightPaddle.receiveShadow = true;
 scene.add(rightPaddle);
@@ -86,9 +89,7 @@ const ball = new THREE.Mesh(
     shininess: 220
   })
 );
-ball.position.set(0, ballRadius + 0.1, 0);
 ball.castShadow = true;
-ball.receiveShadow = false;
 scene.add(ball);
 
 const ballLight = new THREE.PointLight(0xffd37a, 1.2, 5.5, 2);
@@ -105,45 +106,117 @@ window.addEventListener('keyup', (event) => {
   keyState[event.code] = false;
 });
 
-const leftScoreEl = document.getElementById('leftScore');
-const rightScoreEl = document.getElementById('rightScore');
-let leftScore = 0;
-let rightScore = 0;
-
 const paddleSpeed = 8;
 const ballBaseSpeed = 6;
 const maxBounceAngle = Math.PI / 3;
-const arenaLimit = tableDepth / 2 - 0.7;
+let arenaLimit = tableDepth / 2 - 0.7;
 let ballVelocity = new THREE.Vector3();
-
-function resetBall(direction = 1) {
-  ball.position.set(0, ballRadius + 0.1, 0);
-  const randomZ = (Math.random() - 0.5) * 0.8;
-  ballVelocity.set(direction * ballBaseSpeed, 0, randomZ * ballBaseSpeed).normalize().multiplyScalar(ballBaseSpeed);
-}
+let leftScore = 0;
+let rightScore = 0;
+let gameMode = null;
+let running = false;
 
 function setScores() {
   leftScoreEl.textContent = String(leftScore);
   rightScoreEl.textContent = String(rightScore);
 }
 
-resetBall(Math.random() > 0.5 ? 1 : -1);
-setScores();
+function setViewportForMode() {
+  if (!gameMode) return;
+  const targetAspect = gameMode === 'portrait' ? 9 / 16 : 16 / 9;
+  let width = window.innerWidth;
+  let height = window.innerHeight;
 
-const clock = new THREE.Clock();
+  if (width / height > targetAspect) {
+    width = Math.floor(height * targetAspect);
+  } else {
+    height = Math.floor(width / targetAspect);
+  }
 
-function updatePaddles(delta) {
-  const leftDir = (keyState['KeyW'] ? 1 : 0) - (keyState['KeyS'] ? 1 : 0);
-  const rightDir = (keyState['ArrowUp'] ? 1 : 0) - (keyState['ArrowDown'] ? 1 : 0);
+  renderer.setSize(width, height);
+  renderer.domElement.style.position = 'fixed';
+  renderer.domElement.style.left = '50%';
+  renderer.domElement.style.top = '50%';
+  renderer.domElement.style.transform = 'translate(-50%, -50%)';
 
-  leftPaddle.position.z += leftDir * paddleSpeed * delta;
-  rightPaddle.position.z += rightDir * paddleSpeed * delta;
-
-  leftPaddle.position.z = THREE.MathUtils.clamp(leftPaddle.position.z, -arenaLimit, arenaLimit);
-  rightPaddle.position.z = THREE.MathUtils.clamp(rightPaddle.position.z, -arenaLimit, arenaLimit);
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
 }
 
-function bounceFromPaddle(paddle, direction) {
+function setTableLayout(mode) {
+  const portrait = mode === 'portrait';
+  tableWidth = portrait ? 7 : 12;
+  tableDepth = portrait ? 12 : 7;
+  arenaLimit = portrait ? tableWidth / 2 - 0.9 : tableDepth / 2 - 0.7;
+
+  table.geometry.dispose();
+  table.geometry = new THREE.BoxGeometry(tableWidth, 0.6, tableDepth);
+
+  centerLine.geometry.dispose();
+  centerLine.geometry = portrait
+    ? new THREE.BoxGeometry(tableWidth, 0.05, 0.2)
+    : new THREE.BoxGeometry(0.2, 0.05, tableDepth);
+
+  if (portrait) {
+    leftPaddle.position.set(0, 0.4, -tableDepth / 2 + 0.7);
+    rightPaddle.position.set(0, 0.4, tableDepth / 2 - 0.7);
+    camera.position.set(0, 10, 11);
+    controlHint.textContent = 'Top: ◀ ▶   Bottom: ◀ ▶';
+    hud.classList.add('portrait');
+    touchControls.classList.remove('hidden');
+  } else {
+    leftPaddle.position.set(-tableWidth / 2 + 0.7, 0.4, 0);
+    rightPaddle.position.set(tableWidth / 2 - 0.7, 0.4, 0);
+    camera.position.set(0, 8, 12);
+    controlHint.textContent = 'W/S = Left Paddle · ↑/↓ = Right Paddle';
+    hud.classList.remove('portrait');
+    touchControls.classList.add('hidden');
+  }
+
+  camera.lookAt(0, 0, 0);
+}
+
+function resetBall(direction = 1) {
+  ball.position.set(0, ballRadius + 0.1, 0);
+
+  if (gameMode === 'portrait') {
+    const randomX = (Math.random() - 0.5) * 0.8;
+    ballVelocity
+      .set(randomX * ballBaseSpeed, 0, direction * ballBaseSpeed)
+      .normalize()
+      .multiplyScalar(ballBaseSpeed);
+  } else {
+    const randomZ = (Math.random() - 0.5) * 0.8;
+    ballVelocity
+      .set(direction * ballBaseSpeed, 0, randomZ * ballBaseSpeed)
+      .normalize()
+      .multiplyScalar(ballBaseSpeed);
+  }
+}
+
+function updatePaddles(delta) {
+  if (gameMode === 'portrait') {
+    const topDir = (keyState.p1Right ? 1 : 0) - (keyState.p1Left ? 1 : 0);
+    const bottomDir = (keyState.p2Right ? 1 : 0) - (keyState.p2Left ? 1 : 0);
+
+    leftPaddle.position.x += topDir * paddleSpeed * delta;
+    rightPaddle.position.x += bottomDir * paddleSpeed * delta;
+
+    leftPaddle.position.x = THREE.MathUtils.clamp(leftPaddle.position.x, -arenaLimit, arenaLimit);
+    rightPaddle.position.x = THREE.MathUtils.clamp(rightPaddle.position.x, -arenaLimit, arenaLimit);
+  } else {
+    const leftDir = (keyState.KeyS ? 1 : 0) - (keyState.KeyW ? 1 : 0);
+    const rightDir = (keyState.ArrowDown ? 1 : 0) - (keyState.ArrowUp ? 1 : 0);
+
+    leftPaddle.position.z += leftDir * paddleSpeed * delta;
+    rightPaddle.position.z += rightDir * paddleSpeed * delta;
+
+    leftPaddle.position.z = THREE.MathUtils.clamp(leftPaddle.position.z, -arenaLimit, arenaLimit);
+    rightPaddle.position.z = THREE.MathUtils.clamp(rightPaddle.position.z, -arenaLimit, arenaLimit);
+  }
+}
+
+function bounceFromPaddleLandscape(paddle, direction) {
   const paddleHalfDepth = 0.9;
   const diff = ball.position.z - paddle.position.z;
   if (Math.abs(diff) > paddleHalfDepth + ballRadius) return false;
@@ -157,37 +230,80 @@ function bounceFromPaddle(paddle, direction) {
   return true;
 }
 
+function bounceFromPaddlePortrait(paddle, direction) {
+  const paddleHalfWidth = 0.9;
+  const diff = ball.position.x - paddle.position.x;
+  if (Math.abs(diff) > paddleHalfWidth + ballRadius) return false;
+
+  const hitNorm = THREE.MathUtils.clamp(diff / paddleHalfWidth, -1, 1);
+  const angle = hitNorm * maxBounceAngle;
+  const speed = Math.min(ballVelocity.length() + 0.45, 12);
+
+  ballVelocity.z = Math.cos(angle) * speed * direction;
+  ballVelocity.x = Math.sin(angle) * speed;
+  return true;
+}
+
 function updateBall(delta) {
   ball.position.addScaledVector(ballVelocity, delta);
 
-  if (ball.position.z + ballRadius > tableDepth / 2 || ball.position.z - ballRadius < -tableDepth / 2) {
-    ballVelocity.z *= -1;
-    ball.position.z = THREE.MathUtils.clamp(ball.position.z, -tableDepth / 2 + ballRadius, tableDepth / 2 - ballRadius);
-  }
+  if (gameMode === 'portrait') {
+    if (ball.position.x + ballRadius > tableWidth / 2 || ball.position.x - ballRadius < -tableWidth / 2) {
+      ballVelocity.x *= -1;
+      ball.position.x = THREE.MathUtils.clamp(ball.position.x, -tableWidth / 2 + ballRadius, tableWidth / 2 - ballRadius);
+    }
 
-  const leftCollisionX = leftPaddle.position.x + 0.2 + ballRadius;
-  const rightCollisionX = rightPaddle.position.x - 0.2 - ballRadius;
+    const topCollisionZ = leftPaddle.position.z + 0.2 + ballRadius;
+    const bottomCollisionZ = rightPaddle.position.z - 0.2 - ballRadius;
 
-  if (ballVelocity.x < 0 && ball.position.x <= leftCollisionX && bounceFromPaddle(leftPaddle, 1)) {
-    ball.position.x = leftCollisionX;
-  }
+    if (ballVelocity.z < 0 && ball.position.z <= topCollisionZ && bounceFromPaddlePortrait(leftPaddle, 1)) {
+      ball.position.z = topCollisionZ;
+    }
 
-  if (ballVelocity.x > 0 && ball.position.x >= rightCollisionX && bounceFromPaddle(rightPaddle, -1)) {
-    ball.position.x = rightCollisionX;
-  }
+    if (ballVelocity.z > 0 && ball.position.z >= bottomCollisionZ && bounceFromPaddlePortrait(rightPaddle, -1)) {
+      ball.position.z = bottomCollisionZ;
+    }
 
-  if (ball.position.x < -tableWidth / 2 - 1.2) {
-    rightScore += 1;
-    setScores();
-    resetBall(1);
-  } else if (ball.position.x > tableWidth / 2 + 1.2) {
-    leftScore += 1;
-    setScores();
-    resetBall(-1);
+    if (ball.position.z < -tableDepth / 2 - 1.2) {
+      rightScore += 1;
+      setScores();
+      resetBall(1);
+    } else if (ball.position.z > tableDepth / 2 + 1.2) {
+      leftScore += 1;
+      setScores();
+      resetBall(-1);
+    }
+  } else {
+    if (ball.position.z + ballRadius > tableDepth / 2 || ball.position.z - ballRadius < -tableDepth / 2) {
+      ballVelocity.z *= -1;
+      ball.position.z = THREE.MathUtils.clamp(ball.position.z, -tableDepth / 2 + ballRadius, tableDepth / 2 - ballRadius);
+    }
+
+    const leftCollisionX = leftPaddle.position.x + 0.2 + ballRadius;
+    const rightCollisionX = rightPaddle.position.x - 0.2 - ballRadius;
+
+    if (ballVelocity.x < 0 && ball.position.x <= leftCollisionX && bounceFromPaddleLandscape(leftPaddle, 1)) {
+      ball.position.x = leftCollisionX;
+    }
+
+    if (ballVelocity.x > 0 && ball.position.x >= rightCollisionX && bounceFromPaddleLandscape(rightPaddle, -1)) {
+      ball.position.x = rightCollisionX;
+    }
+
+    if (ball.position.x < -tableWidth / 2 - 1.2) {
+      rightScore += 1;
+      setScores();
+      resetBall(1);
+    } else if (ball.position.x > tableWidth / 2 + 1.2) {
+      leftScore += 1;
+      setScores();
+      resetBall(-1);
+    }
   }
 }
 
 function animate() {
+  if (!running) return;
   const delta = Math.min(clock.getDelta(), 0.032);
   updatePaddles(delta);
   updateBall(delta);
@@ -195,10 +311,49 @@ function animate() {
   requestAnimationFrame(animate);
 }
 
-animate();
+const clock = new THREE.Clock();
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+function bindTouchControl(buttonId, keyName) {
+  const btn = document.getElementById(buttonId);
+  const down = (event) => {
+    event.preventDefault();
+    keyState[keyName] = true;
+  };
+  const up = (event) => {
+    event.preventDefault();
+    keyState[keyName] = false;
+  };
+
+  btn.addEventListener('pointerdown', down);
+  btn.addEventListener('pointerup', up);
+  btn.addEventListener('pointercancel', up);
+  btn.addEventListener('pointerleave', up);
+}
+
+bindTouchControl('p1Left', 'p1Left');
+bindTouchControl('p1Right', 'p1Right');
+bindTouchControl('p2Left', 'p2Left');
+bindTouchControl('p2Right', 'p2Right');
+
+function startGame(mode) {
+  gameMode = mode;
+  leftScore = 0;
+  rightScore = 0;
+  setScores();
+
+  splash.classList.add('hidden');
+  gameUI.classList.remove('hidden');
+  setTableLayout(mode);
+  setViewportForMode();
+  resetBall(Math.random() > 0.5 ? 1 : -1);
+
+  if (!running) {
+    running = true;
+    animate();
+  }
+}
+
+playLandscapeBtn.addEventListener('click', () => startGame('landscape'));
+playPortraitBtn.addEventListener('click', () => startGame('portrait'));
+
+window.addEventListener('resize', setViewportForMode);

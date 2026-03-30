@@ -10,11 +10,58 @@ body {
   margin: 0;
   overflow: hidden;
   font-family: Arial, Helvetica, sans-serif;
-  background: #05070f;
+  background: #000;
+  color: #fff;
 }
 
 canvas {
   display: block;
+  margin: 0 auto;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  gap: 12px;
+  z-index: 50;
+}
+
+.screen h1 {
+  margin: 0 0 20px;
+  letter-spacing: 0.14em;
+  font-size: clamp(2rem, 8vw, 3.5rem);
+}
+
+.btn {
+  width: min(320px, 80vw);
+  padding: 14px 18px;
+  border: 1px solid #fff;
+  border-radius: 10px;
+  background: #111;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-green {
+  background: #1f8f2c;
+  border-color: #42d154;
+}
+
+#gameUI {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
 }
 
 #hud {
@@ -28,6 +75,12 @@ canvas {
   letter-spacing: 0.08em;
   user-select: none;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  z-index: 20;
+}
+
+#hud.portrait {
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 #hud span {
@@ -38,9 +91,50 @@ canvas {
   margin: 0 0.4rem;
 }
 
-#hud .controls {
-  margin: 0.5rem 0 0;
+.control-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  margin: 0;
   font-size: 0.8rem;
   font-weight: 600;
   opacity: 0.85;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+  z-index: 20;
+}
+
+#touchControls {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+}
+
+.touch-row {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  pointer-events: auto;
+}
+
+.top-row {
+  top: 18px;
+}
+
+.bottom-row {
+  bottom: 18px;
+}
+
+.touch-btn {
+  width: 68px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
 }
