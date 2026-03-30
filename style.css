@@ -78,11 +78,19 @@ canvas {
   z-index: 20;
 }
 
+#hud span {
+  font-size: 2rem;
+}
+
+#hud .separator {
+  margin: 0 0.4rem;
+}
+
 #hud.portrait {
   top: 50%;
-  left: 0;
+  left: 50%;
   width: 100%;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
@@ -99,19 +107,11 @@ canvas {
 }
 
 #hud.portrait .p1-score {
-  left: 14px;
+  left: 22%;
 }
 
 #hud.portrait .p2-score {
-  right: 14px;
-}
-
-#hud span {
-  font-size: 2rem;
-}
-
-#hud .separator {
-  margin: 0 0.4rem;
+  right: 22%;
 }
 
 .control-hint {
@@ -139,7 +139,7 @@ canvas {
   width: 100%;
   display: flex;
   justify-content: center;
-  gap: 22px;
+  gap: 18px;
   pointer-events: auto;
 }
 
@@ -151,24 +151,41 @@ canvas {
   bottom: 18px;
 }
 
+.touch-box {
+  min-width: min(46vw, 420px);
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 6px;
+}
+
+.p1-box {
+  border: 4px solid #4663a2;
+}
+
+.p2-box {
+  border: 4px solid #b9363a;
+}
+
 .touch-btn {
-  width: min(44vw, 190px);
+  width: 100%;
+  min-width: min(44vw, 400px);
   height: 58px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 2px;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.6);
   color: #fff;
   font-size: 2rem;
   letter-spacing: 0.35rem;
   font-weight: 700;
 }
 
-.top-row .touch-btn {
-  border: 4px solid #4663a2;
+.p1-box .touch-btn {
   color: #4663a2;
 }
 
-.bottom-row .touch-btn {
-  border: 4px solid #b9363a;
+.p2-box .touch-btn {
   color: #b9363a;
 }
